@@ -92,6 +92,18 @@ def get_crawl_args(message):
         args += ['%s=%s' % (k, v)]
     return args
 
+def get_crawl_args_dict(message):
+    """Return arguments dictionary to use for output"""
+    argsDict = {}
+    msg = message.copy()
+    args = [unicode_to_str(msg['_spider'])]
+    del msg['_project'], msg['_spider']
+    settings = msg.pop('settings', {})
+    for k, v in stringify_dict(msg, keys_only=False).items():
+        argsDict[k] = v
+    for k, v in stringify_dict(settings, keys_only=False).items():
+        argsDict[k] = v
+    return argsDict
 def get_spider_list(project, runner=None, pythonpath=None):
     """Return the spider list from the given project, using the given runner"""
     if "cache" not in get_spider_list.__dict__:

@@ -7,7 +7,7 @@ from twisted.application.service import Service
 from twisted.python import log
 
 from scrapy.utils.python import stringify_dict
-from scrapyd.utils import get_crawl_args
+from scrapyd.utils import get_crawl_args,get_crawl_args_dict
 from scrapyd import __version__
 from .interfaces import IPoller, IEnvironment
 
@@ -43,7 +43,7 @@ class Launcher(Service):
         env = e.get_environment(msg, slot)
         env = stringify_dict(env, keys_only=False)
         pp = ScrapyProcessProtocol(slot, project, msg['_spider'], \
-            msg['_job'], env)
+            get_crawl_args_dict(msg), msg['_job'], env)
         pp.deferred.addBoth(self._process_finished, slot)
         reactor.spawnProcess(pp, sys.executable, args=args, env=env)
         self.processes[slot] = pp
@@ -67,11 +67,12 @@ class Launcher(Service):
 
 class ScrapyProcessProtocol(protocol.ProcessProtocol):
 
-    def __init__(self, slot, project, spider, job, env):
+    def __init__(self, slot, project, spider, args, job, env):
         self.slot = slot
         self.pid = None
         self.project = project
         self.spider = spider
+        self.args = args
         self.job = job
         self.start_time = datetime.now()
         self.end_time = None
